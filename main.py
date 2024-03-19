@@ -15,7 +15,7 @@ load_dotenv()
 
 def main():
     # Definir Variables
-    excel_data = "usuarios_a_depurar_falkon_producción.xlsx"
+    excel_data = "usuarios a inactivar en prod.xls"
     # excel_data = "test_db.xlsx"
 
     # Configurar la conexión a la base de datos
@@ -42,9 +42,8 @@ def main():
         delete_data_error_user = []
         for item_excel in data_excel:
             # iterate data Excel
-            excel_id = item_excel['id']
-            excel_clientId = item_excel['client_id']
-
+            excel_id = item_excel['ID usuario']
+            excel_email = item_excel['Correo']
             if not excel_id: 
                 # Not id  in excel
                 excel_data_error.append(item_excel)
@@ -52,10 +51,22 @@ def main():
             
             # Data user database
             user = db.get_user_by_id(excel_id)
+
+            # check database
             if user is None:
                 # Not id in User DB
                 logger.error(f'Error, no user in db: {excel_id}')
                 db_data_error.append(item_excel)
+            
+            client_id = user[0][3]
+            user_email = user[0][2]
+            # check if mail correspond to the same user
+            if user_email.strip() != excel_email.strip():
+                logger.error(f'Error, is not the same mail {excel_id}')
+                logger.error(user_email.strip())
+                logger.error(excel_email.strip())
+                db_data_error.append(item_excel)
+                continue
 
             # Delete user -----
             delete_user = db.delet_user_by_id(excel_id)
@@ -65,16 +76,13 @@ def main():
                 logger.error(f'Error, id User not delete: {excel_id}')
                 continue
 
-            # Delete client if exists ----
-            # Check if exist in excel 
-            if excel_clientId : 
-                user_clientId = user[0][3]
-                #check if exist in database 
-                if user_clientId :
-                    delete_client = db.delet_client_by_id(user_clientId)
-                    if not delete_user:
-                        logger.error(f'Error, id Client not delete: {user_clientId}')
-            
+            if not client_id:
+                continue
+
+            delete_client = db.delet_client_by_id(user_clientId)
+            if not delete_user:
+                logger.error(f'Error, id Client not delete: {user_clientId}')
+
             count = count + 1
             print('count: ', count) 
 

@@ -52,6 +52,12 @@ class Database:
             f'WHERE id = {id};')
         return self.execute_query(query)
 
+    def get_user_by_email(self, id):
+        query = ( f'SELECT id, "name", email, "clientId"'
+            f'FROM channel."user"'
+            f'WHERE email = {id};')
+        return self.execute_query(query)
+
     def delet_user_by_id(self, id):
         query = ( f' DELETE FROM channel."user"'
             f'WHERE id = {id};')
